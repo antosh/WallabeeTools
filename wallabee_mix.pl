@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
-#$Id: wallabee_mix.pl,v 1.4 2012/03/03 23:59:49 antosh Exp $
-#$Author: antosh $
+#$Id$
+#$Author$
 
 use strict;
 use JSON -support_by_pp;
@@ -10,7 +10,6 @@ use JSON -support_by_pp;
 our $APIKEY = "";
 
 my $json = new JSON;
-
 our (@allsets, %itemhash);
 
 #Get all the sets
@@ -30,9 +29,8 @@ foreach my $setid(@allsets){
   my $json_thisset = $json->allow_nonref->utf8->relaxed->escape_slash->loose->allow_singlequote->allow_barekey->decode($thisset);
   print "Set: $json_thisset->{name}\n";
   foreach my $items(@{$json_thisset->{items}}){
-    #next if $items->{name} eq "?";
+    next if $items->{name} eq "?";
     print "  Item: $items->{name}\n";
-    $itemhash{$items} = $items->{name};
     foreach my $i (@{$items->{mix}}){
       print "    Mix: ", GetItem($i), "\n";
     }
