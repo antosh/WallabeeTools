@@ -1,8 +1,5 @@
 #!/usr/bin/perl
 
-#$Id$
-#$Author$
-
 use strict;
 use JSON -support_by_pp;
 
