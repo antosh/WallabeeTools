@@ -1,5 +1,8 @@
 #!/usr/bin/perl
 
+#$Id: wallabee_mix.pl,v 1.6 2012/03/07 04:00:23 antosh Exp $
+#$Author: antosh $
+
 use strict;
 use JSON -support_by_pp;
 
@@ -7,7 +10,8 @@ use JSON -support_by_pp;
 our $APIKEY = "";
 
 my $json = new JSON;
-our (@allsets, %itemhash);
+
+our (@allsets, %itemhash, %catehash);
 
 #Get all the sets
 my $wallabeesets = `curl -s -H X-WallaBee-API-Key:$APIKEY http://api.wallab.ee/sets`;
@@ -27,7 +31,14 @@ foreach my $setid(@allsets){
   print "Set: $json_thisset->{name}\n";
   foreach my $items(@{$json_thisset->{items}}){
     next if $items->{name} eq "?";
-    print "  Item: $items->{name}\n";
+    if ($items->{store_cost}){
+      print "  Item: $items->{name}, Price: \$$items->{store_cost}\n";
+    }else{
+      print "  Item: $items->{name}\n";
+    }
+    foreach my $cate (@{$items->{categories}}){
+      print "   Place: ", GetCate($cate), "\n";
+    }
     foreach my $i (@{$items->{mix}}){
       print "    Mix: ", GetItem($i), "\n";
     }
@@ -44,4 +55,17 @@ sub GetItem($){
   my $json_mix = $json->allow_nonref->utf8->relaxed->escape_slash->loose->allow_singlequote->allow_barekey->decode($mixitem);
   $itemhash{$id} = $json_mix->{name};
   return($json_mix->{name});
+}
+
+#Get the Categories given the ID.
+#Add the id and name to a hash so we only look up each one once.
+#Return the name.
+sub GetCate($){
+  my $id = shift;
+  return ($catehash{$id}) if $catehash{$id};
+  #sleep 1;
+  my $misscate = `curl -s -H X-WallaBee-API-Key:$APIKEY http://api.wallab.ee/placecategories/$id`;
+  my $json_cate = $json->allow_nonref->utf8->relaxed->escape_slash->loose->allow_singlequote->allow_barekey->decode($misscate);
+  $catehash{$id} = $json_cate->{name};
+  return($json_cate->{name});
 }
